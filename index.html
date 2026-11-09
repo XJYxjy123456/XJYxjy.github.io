@@ -35,10 +35,50 @@
                 background: rgba(255,255,255,0.7);
                 backdrop-filter: blur(8px);
             }
+            .spin {
+                animation: spin 1s linear infinite;
+            }
+            @keyframes spin {
+                to { transform: rotate(360deg); }
+            }
+            .fade-in {
+                animation: fadeIn 0.3s ease-out;
+            }
+            @keyframes fadeIn {
+                from { opacity:0; transform:scale(0.95); }
+                to { opacity:1; transform:scale(1); }
+            }
+            .mask-fade {
+                animation: maskFade 0.25s ease-out;
+            }
+            @keyframes maskFade {
+                from { opacity:0; }
+                to { opacity:1; }
+            }
         }
     </style>
 </head>
 <body class="bg-slate-50 font-sans text-slate-700">
+    <!-- ✅ 全局加载动画遮罩 -->
+    <div id="loadingMask" class="fixed inset-0 bg-white z-[9999] flex items-center justify-center mask-fade">
+        <div class="text-center">
+            <div class="w-14 h-14 border-4 border-primary/20 border-t-primary rounded-full spin mx-auto"></div>
+            <p class="mt-4 text-primary font-medium">系统加载中...</p>
+        </div>
+    </div>
+
+    <!-- ✅ 成功弹窗（默认隐藏） -->
+    <div id="successModal" class="fixed inset-0 bg-black/40 z-[999] items-center justify-center hidden mask-fade">
+        <div class="bg-white rounded-2xl p-6 w-[90%] max-w-md fade-in">
+            <div class="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center mx-auto">
+                <i class="fa fa-check text-green-500 text-2xl"></i>
+            </div>
+            <h3 class="text-center font-bold text-lg mt-3">提交成功</h3>
+            <p class="text-center text-slate-500 mt-2">任务已进入队列，稍后可在检测记录查看结果</p>
+            <button onclick="closeModal()" class="w-full mt-5 py-2 rounded-xl bg-primary text-white">确定</button>
+        </div>
+    </div>
+
     <div class="flex h-screen overflow-hidden">
         <!-- 侧边栏 -->
         <aside class="w-16 lg:w-64 bg-white card-shadow flex flex-col transition-all duration-300">
@@ -47,34 +87,34 @@
                 <i class="fa fa-cube text-primary text-xl lg:hidden"></i>
             </div>
             <nav class="flex-1 py-6 px-2 lg:px-4 space-y-2">
-                <a href=" " class="menu-item flex items-center gap-3 px-3 py-3 rounded-xl bg-primary text-white" data-target="workbench">
+                <a href="javascript:switchPage('workbench')" class="menu-item flex items-center gap-3 px-3 py-3 rounded-xl bg-primary text-white">
                     <i class="fa fa-home w-5 text-center"></i>
                     <span class="hidden lg:block">工作台</span>
-                </a >
-                <a href="#" class="menu-item flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-lightPurple transition" data-target="video">
+                </a>
+                <a href="javascript:switchPage('video')" class="menu-item flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-lightPurple transition">
                     <i class="fa fa-video-camera w-5 text-center"></i>
                     <span class="hidden lg:block">视频检测</span>
-                </a >
-                <a href="#" class="menu-item flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-lightPurple transition" data-target="script">
+                </a>
+                <a href="javascript:switchPage('script')" class="menu-item flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-lightPurple transition">
                     <i class="fa fa-file-text w-5 text-center"></i>
                     <span class="hidden lg:block">剧本合规预审</span>
-                </a >
-                <a href="#" class="menu-item flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-lightPurple transition" data-target="quota">
+                </a>
+                <a href="javascript:switchPage('quota')" class="menu-item flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-lightPurple transition">
                     <i class="fa fa-tachometer w-5 text-center"></i>
                     <span class="hidden lg:block">额度面板</span>
-                </a >
-                <a href="#" class="menu-item flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-lightPurple transition" data-target="apikey">
+                </a>
+                <a href="javascript:switchPage('apikey')" class="menu-item flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-lightPurple transition">
                     <i class="fa fa-key w-5 text-center"></i>
                     <span class="hidden lg:block">API密钥</span>
-                </a >
-                <a href="#" class="menu-item flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-lightPurple transition" data-target="record">
+                </a>
+                <a href="javascript:switchPage('record')" class="menu-item flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-lightPurple transition">
                     <i class="fa fa-list-alt w-5 text-center"></i>
                     <span class="hidden lg:block">检测记录</span>
-                </a >
-                <a href="#" class="menu-item flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-lightPurple transition" data-target="package">
+                </a>
+                <a href="javascript:switchPage('package')" class="menu-item flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-lightPurple transition">
                     <i class="fa fa-credit-card w-5 text-center"></i>
                     <span class="hidden lg:block">套餐方案</span>
-                </a >
+                </a>
             </nav>
         </aside>
 
@@ -83,13 +123,13 @@
             <!-- 顶部导航 -->
             <header class="h-16 bg-white card-shadow flex items-center justify-between px-4 lg:px-8">
                 <div class="flex items-center gap-2">
-                    <button class="top-tab px-4 py-2 rounded-full bg-primary text-white text-sm" data-target="workbench">工作台</button>
-                    <button class="top-tab px-4 py-2 rounded-full hover:bg-lightPurple text-sm" data-target="video">视频检测</button>
-                    <button class="top-tab px-4 py-2 rounded-full hover:bg-lightPurple text-sm" data-target="script">剧本预审</button>
-                    <button class="top-tab px-4 py-2 rounded-full hover:bg-lightPurple text-sm" data-target="quota">额度面板</button>
-                    <button class="top-tab px-4 py-2 rounded-full hover:bg-lightPurple text-sm" data-target="apikey">API密钥</button>
-                    <button class="top-tab px-4 py-2 rounded-full hover:bg-lightPurple text-sm" data-target="record">检测记录</button>
-                    <button class="top-tab px-4 py-2 rounded-full hover:bg-lightPurple text-sm" data-target="package">套餐方案</button>
+                    <button onclick="switchPage('workbench')" class="top-tab px-4 py-2 rounded-full bg-primary text-white text-sm">工作台</button>
+                    <button onclick="switchPage('video')" class="top-tab px-4 py-2 rounded-full hover:bg-lightPurple text-sm">视频检测</button>
+                    <button onclick="switchPage('script')" class="top-tab px-4 py-2 rounded-full hover:bg-lightPurple text-sm">剧本预审</button>
+                    <button onclick="switchPage('quota')" class="top-tab px-4 py-2 rounded-full hover:bg-lightPurple text-sm">额度面板</button>
+                    <button onclick="switchPage('apikey')" class="top-tab px-4 py-2 rounded-full hover:bg-lightPurple text-sm">API密钥</button>
+                    <button onclick="switchPage('record')" class="top-tab px-4 py-2 rounded-full hover:bg-lightPurple text-sm">检测记录</button>
+                    <button onclick="switchPage('package')" class="top-tab px-4 py-2 rounded-full hover:bg-lightPurple text-sm">套餐方案</button>
                 </div>
                 <div class="flex items-center gap-4">
                     <div class="relative hidden md:block">
@@ -112,10 +152,418 @@
                         <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
                             <div>
                                 <h1 class="text-[clamp(1.4rem,3vw,2rem)] font-bold text-slate-800">欢迎回来，管理员</h1>
-                                <p class="text-slate-500 mt-1">当前有 8 项待处理检测修复任务！</p >
+                                <p class="text-slate-500 mt-1">当前有 8 项待处理检测修复任务！</p>
                             </div>
                             <div class="flex gap-3 mt-4 md:mt-0">
-                                <button class="bg-primary text-white px-5 py-2 rounded-full flex items-center gap-2 hover:bg-primary/90 transition">
+                                <button onclick="openModal()" class="bg-primary text-white px-5 py-2 rounded-full flex items-center gap-2 hover:bg-primary/90 transition">
                                     <i class="fa fa-plus"></i> 新建检测任务
                                 </button>
-   
+                                <button class="border border-slate-200 px-4 py-2 rounded-full hover:bg-white transition">
+                                    <i class="fa fa-calendar-o mr-1"></i> 今日
+                                </button>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <div class="lg:col-span-2 bg-white rounded-2xl p-5 card-shadow">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="flex items-center gap-3">
+                                        <button class="px-3 py-1 rounded-lg bg-lightPurple text-sm">24小时</button>
+                                        <button class="px-3 py-1 rounded-lg bg-lightPurple text-sm">本周</button>
+                                    </div>
+                                    <span class="text-sm text-slate-500">2026</span>
+                                </div>
+                                <canvas id="mainChart" height="260"></canvas>
+                            </div>
+                            <div class="bg-white rounded-2xl p-5 card-shadow">
+                                <p class="text-slate-500 text-sm mb-2">累计检测总量</p>
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="px-2 py-0.5 rounded bg-primary/10 text-primary text-xs">+13%</span>
+                                </div>
+                                <p class="text-3xl font-bold text-slate-800">74503</p>
+                                <div class="grid grid-cols-2 gap-3 mt-5">
+                                    <div class="bg-lightPurple rounded-xl p-3">
+                                        <p class="text-xl font-semibold text-primary">56% ↑</p>
+                                        <p class="text-xs text-slate-500">环比上月</p>
+                                    </div>
+                                    <div class="bg-lightPurple rounded-xl p-3">
+                                        <p class="text-xl font-semibold text-primary">27% ↑</p>
+                                        <p class="text-xs text-slate-500">环比上季度</p>
+                                    </div>
+                                </div>
+                                <p class="text-xs text-slate-400 mt-3">检测请求稳步上涨。</p>
+                            </div>
+                            <div class="bg-white rounded-2xl p-5 card-shadow">
+                                <p class="text-slate-500 text-sm mb-1">今日完成任务</p>
+                                <p class="text-3xl font-bold">24</p>
+                                <div class="mt-6">
+                                    <p class="text-slate-500 text-sm mb-1">本月修复成功</p>
+                                    <p class="text-2xl font-bold">2500</p>
+                                </div>
+                            </div>
+                            <div class="bg-white rounded-2xl p-5 card-shadow">
+                                <div class="w-full h-32 rounded-xl gradient-purple mb-4 flex items-end p-4 text-white">
+                                    <div>
+                                        <p class="font-semibold">AI一键检测</p>
+                                        <p class="text-xs opacity-80">上传文件，自动检测+修复</p>
+                                    </div>
+                                </div>
+                                <div class="flex gap-3">
+                                    <button class="flex-1 py-2 rounded-lg bg-lightPurple text-primary text-sm">上传文件</button>
+                                    <button class="flex-1 py-2 rounded-lg bg-lightPurple text-primary text-sm">查看报告</button>
+                                </div>
+                            </div>
+                            <div class="lg:col-span-2 bg-white rounded-2xl p-5 card-shadow">
+                                <div class="flex justify-between items-center mb-4">
+                                    <h3 class="font-semibold text-slate-800">最近检测任务</h3>
+                                    <span class="text-xs text-slate-400">1-10 of 23</span>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-sm">
+                                        <thead>
+                                            <tr class="text-slate-400 border-b border-slate-100">
+                                                <th class="text-left pb-3 font-normal">文件名称</th>
+                                                <th class="text-left pb-3 font-normal">风险分值</th>
+                                                <th class="text-left pb-3 font-normal">任务类型</th>
+                                                <th class="text-left pb-3 font-normal">提交时间</th>
+                                                <th class="text-left pb-3 font-normal">状态</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-slate-50">
+                                            <tr>
+                                                <td class="py-3">report_001.pdf</td>
+                                                <td>20</td>
+                                                <td><span class="px-2 py-0.5 rounded bg-amber-50 text-amber-600 text-xs">基础检测</span></td>
+                                                <td>11.09.2026</td>
+                                                <td><span class="text-green-500">已修复完成</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="py-3">data_set.xlsx</td>
+                                                <td>12</td>
+                                                <td><span class="px-2 py-0.5 rounded bg-amber-50 text-amber-600 text-xs">基础检测</span></td>
+                                                <td>11.09.2026</td>
+                                                <td><span class="text-green-500">已修复完成</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="py-3">article.docx</td>
+                                                <td>16</td>
+                                                <td><span class="px-2 py-0.5 rounded bg-purple-50 text-purple-600 text-xs">深度检测</span></td>
+                                                <td>11.09.2026</td>
+                                                <td><span class="text-slate-400">待修复</span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ========== 视频检测 ========== -->
+                    <section id="video" class="page-content hidden">
+                        <div class="mb-6">
+                            <h1 class="text-[clamp(1.4rem,3vw,2rem)] font-bold text-slate-800">视频检测</h1>
+                            <p class="text-slate-500 mt-1">上传视频，识别违规画面、音频、字幕内容</p>
+                        </div>
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <div class="lg:col-span-2 bg-white rounded-2xl p-5 card-shadow">
+                                <div class="border-2 border-dashed border-slate-200 rounded-xl p-10 text-center">
+                                    <i class="fa fa-video-camera text-4xl text-primary mb-4"></i>
+                                    <p class="text-slate-600 mb-2">点击或者拖拽视频到此处上传</p>
+                                    <p class="text-xs text-slate-400">支持 mp4、mov、avi，最大 200MB</p>
+                                    <button class="mt-4 px-5 py-2 rounded-full bg-primary text-white">选择视频文件</button>
+                                </div>
+                            </div>
+                            <div class="bg-white rounded-2xl p-5 card-shadow">
+                                <h3 class="font-semibold mb-4">检测选项</h3>
+                                <div class="space-y-3">
+                                    <label class="flex items-center gap-2"><input type="checkbox" checked class="accent-primary"> 画面违规检测</label>
+                                    <label class="flex items-center gap-2"><input type="checkbox" checked class="accent-primary"> 音频违规检测</label>
+                                    <label class="flex items-center gap-2"><input type="checkbox" checked class="accent-primary"> 字幕文本检测</label>
+                                    <label class="flex items-center gap-2"><input type="checkbox" class="accent-primary"> AI内容溯源检测</label>
+                                </div>
+                                <button onclick="openModal()" class="w-full mt-6 py-2 rounded-xl bg-primary text-white">开始检测</button>
+                            </div>
+                            <div class="lg:col-span-3 bg-white rounded-2xl p-5 card-shadow">
+                                <h3 class="font-semibold mb-4">视频检测队列</h3>
+                                <table class="w-full text-sm">
+                                    <thead>
+                                        <tr class="text-slate-400 border-b border-slate-100">
+                                            <th class="text-left pb-3 font-normal">视频名称</th>
+                                            <th class="text-left pb-3 font-normal">时长</th>
+                                            <th class="text-left pb-3 font-normal">提交时间</th>
+                                            <th class="text-left pb-3 font-normal">状态</th>
+                                            <th class="text-left pb-3 font-normal">操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-50">
+                                        <tr>
+                                            <td class="py-3">ad_video_01.mp4</td>
+                                            <td>00:01:24</td>
+                                            <td>11.09.2026</td>
+                                            <td><span class="text-green-500">检测完成</span></td>
+                                            <td><a class="text-primary cursor-pointer">查看报告</a></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ========== 剧本合规预审 ========== -->
+                    <section id="script" class="page-content hidden">
+                        <div class="mb-6">
+                            <h1 class="text-[clamp(1.4rem,3vw,2rem)] font-bold text-slate-800">剧本合规预审</h1>
+                            <p class="text-slate-500 mt-1">剧本文案、口播稿、短视频脚本合规风险筛查</p>
+                        </div>
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <div class="lg:col-span-2 bg-white rounded-2xl p-5 card-shadow">
+                                <label class="font-medium block mb-2">粘贴剧本内容</label>
+                                <textarea class="w-full h-60 p-4 border rounded-xl outline-none focus:ring-2 focus:ring-primary/30" placeholder="在这里粘贴脚本、口播文案、剧本文本..."></textarea>
+                                <div class="flex justify-end mt-4 gap-3">
+                                    <button class="px-4 py-2 border rounded-xl">清空</button>
+                                    <button onclick="openModal()" class="px-5 py-2 rounded-full bg-primary text-white">提交预审</button>
+                                </div>
+                            </div>
+                            <div class="bg-white rounded-2xl p-5 card-shadow">
+                                <h3 class="font-semibold mb-4">预审维度</h3>
+                                <div class="space-y-3">
+                                    <label class="flex items-center gap-2"><input type="checkbox" checked class="accent-primary"> 敏感词筛查</label>
+                                    <label class="flex items-center gap-2"><input type="checkbox" checked class="accent-primary"> 广告合规校验</label>
+                                    <label class="flex items-center gap-2"><input type="checkbox" checked class="accent-primary"> 版权风险检测</label>
+                                    <label class="flex items-center gap-2"><input type="checkbox" class="accent-primary"> 价值观风险识别</label>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ========== 额度面板 ========== -->
+                    <section id="quota" class="page-content hidden">
+                        <div class="mb-6">
+                            <h1 class="text-[clamp(1.4rem,3vw,2rem)] font-bold text-slate-800">额度面板</h1>
+                            <p class="text-slate-500 mt-1">查看各项检测服务剩余额度、消耗明细</p>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="bg-white rounded-2xl p-5 card-shadow">
+                                <p class="text-slate-500 text-sm">视频检测额度</p>
+                                <p class="text-3xl font-bold mt-2">128 / 500 次</p>
+                                <div class="w-full bg-slate-100 rounded-full h-2 mt-4">
+                                    <div class="bg-primary h-2 rounded-full" style="width:25%"></div>
+                                </div>
+                            </div>
+                            <div class="bg-white rounded-2xl p-5 card-shadow">
+                                <p class="text-slate-500 text-sm">剧本预审额度</p>
+                                <p class="text-3xl font-bold mt-2">362 / 1000 次</p>
+                                <div class="w-full bg-slate-100 rounded-full h-2 mt-4">
+                                    <div class="bg-primary h-2 rounded-full" style="width:36%"></div>
+                                </div>
+                            </div>
+                            <div class="bg-white rounded-2xl p-5 card-shadow">
+                                <p class="text-slate-500 text-sm">API调用额度</p>
+                                <p class="text-3xl font-bold mt-2">8210 / 20000 次</p>
+                                <div class="w-full bg-slate-100 rounded-full h-2 mt-4">
+                                    <div class="bg-primary h-2 rounded-full" style="width:41%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ========== API密钥 ========== -->
+                    <section id="apikey" class="page-content hidden">
+                        <div class="mb-6">
+                            <h1 class="text-[clamp(1.4rem,3vw,2rem)] font-bold text-slate-800">API密钥管理</h1>
+                            <p class="text-slate-500 mt-1">创建、查看、重置服务调用密钥</p>
+                        </div>
+                        <div class="bg-white rounded-2xl p-5 card-shadow">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="font-semibold">密钥列表</h3>
+                                <button onclick="openModal()" class="px-4 py-2 rounded-full bg-primary text-white text-sm">新建密钥</button>
+                            </div>
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="text-slate-400 border-b border-slate-100">
+                                        <th class="text-left pb-3 font-normal">密钥名称</th>
+                                        <th class="text-left pb-3 font-normal">Key</th>
+                                        <th class="text-left pb-3 font-normal">创建时间</th>
+                                        <th class="text-left pb-3 font-normal">状态</th>
+                                        <th class="text-left pb-3 font-normal">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-50">
+                                    <tr>
+                                        <td class="py-3">开发环境密钥</td>
+                                        <td>sk-************************789</td>
+                                        <td>2026-10-01</td>
+                                        <td><span class="text-green-500">启用</span></td>
+                                        <td class="flex gap-3 text-primary">
+                                            <span class="cursor-pointer">重置</span><span class="cursor-pointer">删除</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <!-- ========== 检测记录 ========== -->
+                    <section id="record" class="page-content hidden">
+                        <div class="mb-6">
+                            <h1 class="text-[clamp(1.4rem,3vw,2rem)] font-bold text-slate-800">检测记录</h1>
+                            <p class="text-slate-500 mt-1">全部历史检测任务记录，支持筛选、导出报告</p>
+                        </div>
+                        <div class="bg-white rounded-2xl p-5 card-shadow">
+                            <div class="flex flex-wrap gap-3 mb-4">
+                                <select class="px-3 py-2 border rounded-lg">
+                                    <option>全部类型</option>
+                                    <option>视频检测</option>
+                                    <option>剧本预审</option>
+                                </select>
+                                <input type="date" class="px-3 py-2 border rounded-lg">
+                                <button class="px-4 py-2 rounded-lg bg-primary text-white">筛选</button>
+                            </div>
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="text-slate-400 border-b border-slate-100">
+                                        <th class="text-left pb-3 font-normal">任务ID</th>
+                                        <th class="text-left pb-3 font-normal">类型</th>
+                                        <th class="text-left pb-3 font-normal">名称</th>
+                                        <th class="text-left pb-3 font-normal">提交时间</th>
+                                        <th class="text-left pb-3 font-normal">结果</th>
+                                        <th class="text-left pb-3 font-normal">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-50">
+                                    <tr>
+                                        <td class="py-3">T20261109001</td>
+                                        <td>剧本预审</td>
+                                        <td>短视频脚本A</td>
+                                        <td>2026-11-09</td>
+                                        <td><span class="text-green-500">合规</span></td>
+                                        <td><a class="text-primary cursor-pointer">查看报告</a></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <!-- ========== 套餐方案 ========== -->
+                    <section id="package" class="page-content hidden">
+                        <div class="mb-6">
+                            <h1 class="text-[clamp(1.4rem,3vw,2rem)] font-bold text-slate-800">套餐方案</h1>
+                            <p class="text-slate-500 mt-1">查看套餐权益、规格、价格，升级套餐</p>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="bg-white rounded-2xl p-5 card-shadow">
+                                <h3 class="font-bold text-lg">免费版</h3>
+                                <p class="text-3xl font-bold mt-2">¥0<span class="text-sm font-normal text-slate-400"> /月</span></p>
+                                <ul class="mt-4 space-y-2 text-sm text-slate-600">
+                                    <li><i class="fa fa-check text-green-500 mr-2"></i>视频检测 20次/月</li>
+                                    <li><i class="fa fa-check text-green-500 mr-2"></i>剧本预审 50次/月</li>
+                                    <li><i class="fa fa-times text-red-400 mr-2"></i>API接口调用</li>
+                                </ul>
+                                <button class="w-full mt-5 py-2 border rounded-xl">当前套餐</button>
+                            </div>
+                            <div class="bg-white rounded-2xl p-5 card-shadow ring-2 ring-primary">
+                                <span class="text-xs bg-primary text-white px-2 py-1 rounded">推荐</span>
+                                <h3 class="font-bold text-lg mt-2">专业版</h3>
+                                <p class="text-3xl font-bold mt-2">¥99<span class="text-sm font-normal text-slate-400"> /月</span></p>
+                                <ul class="mt-4 space-y-2 text-sm text-slate-600">
+                                    <li><i class="fa fa-check text-green-500 mr-2"></i>视频检测 500次/月</li>
+                                    <li><i class="fa fa-check text-green-500 mr-2"></i>剧本预审 1000次/月</li>
+                                    <li><i class="fa fa-check text-green-500 mr-2"></i>API调用 20000次/月</li>
+                                </ul>
+                                <button onclick="openModal()" class="w-full mt-5 py-2 rounded-xl bg-primary text-white">立即升级</button>
+                            </div>
+                            <div class="bg-white rounded-2xl p-5 card-shadow">
+                                <h3 class="font-bold text-lg">企业版</h3>
+                                <p class="text-3xl font-bold mt-2">¥399<span class="text-sm font-normal text-slate-400"> /月</span></p>
+                                <ul class="mt-4 space-y-2 text-sm text-slate-600">
+                                    <li><i class="fa fa-check text-green-500 mr-2"></i>视频检测 3000次/月</li>
+                                    <li><i class="fa fa-check text-green-500 mr-2"></i>剧本预审 5000次/月</li>
+                                    <li><i class="fa fa-check text-green-500 mr-2"></i>API不限量扩容</li>
+                                </ul>
+                                <button onclick="openModal()" class="w-full mt-5 py-2 border rounded-xl">联系销售</button>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        let chartInstance = null;
+        // 弹窗打开关闭
+        function openModal(){
+            document.getElementById('successModal').style.display = 'flex';
+        }
+        function closeModal(){
+            document.getElementById('successModal').style.display = 'none';
+        }
+        // 页面切换函数
+        function switchPage(targetId) {
+            // 隐藏所有页面
+            const allPages = document.querySelectorAll('.page-content');
+            allPages.forEach(p => p.classList.add('hidden'));
+            // 显示目标页面
+            document.getElementById(targetId).classList.remove('hidden');
+
+            // 侧边栏激活样式
+            const menuItems = document.querySelectorAll('.menu-item');
+            menuItems.forEach(m => {
+                m.classList.remove('bg-primary','text-white');
+                m.classList.add('hover:bg-lightPurple');
+            })
+            // 顶部标签激活样式
+            const topTabs = document.querySelectorAll('.top-tab');
+            topTabs.forEach(t => {
+                t.classList.remove('bg-primary','text-white');
+                t.classList.add('hover:bg-lightPurple');
+            })
+
+            // 如果切回工作台，渲染图表
+            if(targetId === "workbench"){
+                setTimeout(renderChart,100);
+            }
+        }
+        // 渲染图表
+        function renderChart(){
+            const canvasDom = document.getElementById('mainChart');
+            if(!canvasDom) return;
+            if(chartInstance){
+                chartInstance.destroy();
+            }
+            const ctx = canvasDom.getContext('2d');
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['一月','二月','三月','四月'],
+                    datasets: [{
+                        label: '检测任务数量',
+                        data: [20,24,28,22],
+                        backgroundColor: [
+                            'rgba(196, 181, 253,0.7)',
+                            'rgba(167, 139, 250,0.7)',
+                            'rgba(124, 58, 237,0.8)',
+                            'rgba(196, 181, 253,0.7)'
+                        ],
+                        borderRadius:10
+                    }]
+                },
+                options:{
+                    responsive:true,
+                    maintainAspectRatio:false,
+                    plugins:{legend:{display:false}},
+                    scales:{
+                        y:{beginAtZero:true, grid:{color:'#f1f5f9'}}
+                    }
+                }
+            })
+        }
+        // 页面加载：加载动画延时消失
+        window.onload = function(){
+            setTimeout(()=>{
+                document.getElementById('loadingMask').style.display = 'none';
+            }, 800)
+            renderChart();
+        }
+    </script>
+</body>
+</html>
