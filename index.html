@@ -1,778 +1,379 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>时光智影 · AI视频智能质检与修复平台</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet" />
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
-<script>
-  tailwind.config = {
-    theme: {
-      extend: {
-        colors: {
-          primary: "#7c3aed",
-          primaryDark: "#4c1d95",
-          lightPurple: "#f3f1ff",
-          softPurple: "#e9e5ff",
-          midPurple: "#c4b5fd",
-        },
-        fontFamily: {
-          sans: ["Inter", "system-ui", "sans-serif"],
-        },
-      },
-    };
-  };
-</script>
-<style type="text/tailwindcss">
-  @layer utilities {
-    .card-shadow {
-      box-shadow: 0 10px 30px -12px rgba(124, 58, 237, 0.25),
-                  0 4px 10px -6px rgba(124, 58, 237, 0.12);
-    }
-    .card-soft {
-      box-shadow: 0 8px 24px -16px rgba(91, 33, 182, 0.25),
-                  0 2px 8px rgba(124, 58, 237, 0.08);
-    }
-    .gradient-purple {
-      background: linear(135deg, #ddd6fe 0%, #c4b5fd 30%, #a78bfa 60%, #7c3aed 100%);
-    }
-    .gradient-purple-strong {
-      background: linear(135deg, #8b5cf6 0%, #7c3aed 45%, #6d28d9 100%);
-    }
-    .gradient-purple-soft {
-      background: linear(135deg, #f5f3ff 0%, #ede9fe 45%, #ddd6fe 100%);
-    }
-    .gradient-bg {
-      background:
-        radial-gradient(1200px 600px at 10% -10%, #ede9fe 0%, transparent 60%),
-        radial-gradient(900px 500px at 110% 10%, #ddd6fe 0%, transparent 55%),
-        linear-gradient(180deg, #fbfbff 0%, #f3f1ff 100%);
-    }
-    .glass {
-      background: rgba(255, 255, 255, 0.72);
-      backdrop-filter: blur(10px);
-    }
-    .spin {
-      animation: spin 1s linear infinite;
-    }
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-    .fade-in {
-      animation: fadeIn 0.32s ease-out;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: scale(0.96); }
-      to { opacity: 1; transform: scale(1); }
-    }
-    .mask-fade {
-      animation: maskFade 0.25s ease-out;
-    }
-    @keyframes maskFade {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-    .menu-active {
-      background: linear(135deg, #6d28d9 0%, #4c1d95 100%);
-      color: white;
-      box-shadow: 0 10px 24px -10px rgba(76, 29, 149, 0.55);
-    }
-    .top-tab-active {
-      background: linear(135deg, #7c3aed 0%, #6d28d9 100%);
-      color: white;
-      box-shadow: 0 8px 20px -10px rgba(124, 58, 237, 0.6);
-    }
-    .icon-box {
-      width: 44px;
-      height: 44px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 16px;
-      background-color: #ede9fe;
-      color: #7c3aed;
-    }
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI检测与修复一体化系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#6B46C1',
+                        darkPurple: '#4C2890',
+                        lightPurple: '#B794F4',
+                        softBg: '#F6F3FF',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .glass {
+                background: rgba(255, 255, 255, 0.12);
+                backdrop-filter: blur(12px);
+                border: 1px solid rgba(255, 255, 255, 0.18);
+            }
+            .card-glass {
+                background: rgba(255, 255, 255, 0.75);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(107, 70, 193, 0.15);
+                box-shadow: 0 8px 32px 0 rgba(107, 70, 193, 0.12);
+            }
+            .menu-active {
+                background-color: #4C2890;
+                color: white;
+            }
+            .tab-active {
+                background-color: #4C2890;
+                color: white;
+            }
+        }
+    </style>
 </head>
-<body class="gradient-bg font-sans text-slate-700">
-
-<!-- 全局加载动画 -->
-<div id="loadingMask" class="fixed inset-0 bg-white/85 z-[9999] flex items-center justify-center mask-fade">
-  <div class="text-center">
-    <div class="w-14 h-14 border-4 border-primary/20 border-t-primaryDark rounded-full spin mx-auto"></div>
-    <p class="mt-4 text-primaryDark font-medium">系统加载中...</p>
-  </div>
-</div>
-
-<!-- 成功弹窗 -->
-<div id="successModal" class="fixed inset-0 bg-black/40 z-[999] items-center justify-center hidden mask-fade">
-  <div class="bg-white rounded-3xl p-6 w-[90%] max-w-md fade-in">
-    <div class="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center mx-auto">
-      <i class="fa fa-check text-green-500 text-2xl"></i>
-    </div>
-    <h3 class="text-center font-bold text-lg mt-3">提交成功</h3>
-    <p class="text-center text-slate-500 mt-2">任务已进入队列，稍后可在检测记录查看结果。</p>
-    <button onclick="closeModal()" class="w-full mt-5 py-3 rounded-2xl gradient-purple-strong text-white font-medium">确定</button>
-  </div>
-</div>
-
-<div class="flex h-screen overflow-hidden">
-
-  <!-- 侧边栏【精简4个菜单】 -->
-  <aside class="w-16 lg:w-64 glass card-soft rounded-r-3xl flex flex-col transition-all duration-300">
-    <div class="h-16 flex items-center justify-center lg:justify-start px-4 border-b border-purple-100/70">
-      <span class="text-primaryDark font-bold text-lg hidden lg:block">时光智影</span>
-      <i class="fa fa-cube text-primary text-xl lg:hidden"></i>
-    </div>
-    <nav class="flex-1 py-6 px-3 space-y-2">
-      <a href="javascript:switchPage('account')" class="side-menu-item menu-active flex items-center gap-3 px-3 py-3 rounded-2xl text-sm">
-        <i class="fa fa-user w-5 text-center"></i>
-        <span class="hidden lg:block">个人账号</span>
-      </a>
-      <a href="javascript:switchPage('recharge')" class="side-menu-item flex items-center gap-3 px-3 py-3 rounded-2xl hover:bg-softPurple/70 transition text-sm">
-        <i class="fa fa-credit-card w-5 text-center"></i>
-        <span class="hidden lg:block">额度充值</span>
-      </a>
-      <a href="javascript:switchPage('package')" class="side-menu-item flex items-center gap-3 px-3 py-3 rounded-2xl hover:bg-softPurple/70 transition text-sm">
-        <i class="fa fa-gift w-5 text-center"></i>
-        <span class="hidden lg:block">套餐方案</span>
-      </a>
-      <a href="javascript:switchPage('setting')" class="side-menu-item flex items-center gap-3 px-3 py-3 rounded-2xl hover:bg-softPurple/70 transition text-sm">
-        <i class="fa fa-cog w-5 text-center"></i>
-        <span class="hidden lg:block">系统设置</span>
-      </a>
-    </nav>
-  </aside>
-
-  <!-- 主区域 -->
-  <div class="flex-1 flex flex-col overflow-hidden">
-
-    <!-- 顶部导航【业务标签，保留】 -->
-    <header class="h-16 bg-white/70 glass card-soft rounded-b-3xl flex items-center justify-between px-4 lg:px-8">
-      <div class="flex items-center gap-2 overflow-x-auto">
-        <button onclick="switchPage('workbench')" class="top-tab top-tab-active px-4 py-2 rounded-full text-sm whitespace-nowrap">
-          <i class="fa fa-home mr-1"></i>工作台
-        </button>
-        <button onclick="switchPage('video')" class="top-tab px-4 py-2 rounded-full hover:bg-softPurple/70 text-sm whitespace-nowrap">
-          <i class="fa fa-video-camera mr-1"></i>视频检测
-        </button>
-        <button onclick="switchPage('script')" class="top-tab px-4 py-2 rounded-full hover:bg-softPurple/70 text-sm whitespace-nowrap">
-          <i class="fa fa-file-text mr-1"></i>剧本预审
-        </button>
-        <button onclick="switchPage('quota')" class="top-tab px-4 py-2 rounded-full hover:bg-softPurple/70 text-sm whitespace-nowrap">
-          <i class="fa fa-tachometer mr-1"></i>额度面板
-        </button>
-        <button onclick="switchPage('record')" class="top-tab px-4 py-2 rounded-full hover:bg-softPurple/70 text-sm whitespace-nowrap">
-          <i class="fa fa-list-alt mr-1"></i>检测记录
-        </button>
-      </div>
-      <div class="flex items-center gap-4">
-        <div class="relative hidden md:block">
-          <input type="text" placeholder="搜索任务、文件ID..." class="bg-lightPurple/70 rounded-full pl-10 pr-4 py-2 w-60 outline-none focus:ring-2 focus:ring-primary/40" />
-          <i class="fa fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+<body class="bg-gradient-to-br from-[#3B2474] via-primary to-[#2A1755] min-h-screen text-slate-800">
+    <!-- 全局加载弹窗 -->
+    <div id="loadingModal" class="fixed inset-0 z-50 bg-black/50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-2xl p-8 flex flex-col items-center gap-4">
+            <div class="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            <p class="text-primary font-medium">系统加载中...</p>
         </div>
-        <i class="fa fa-bell-o text-slate-500 cursor-pointer"></i>
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-full gradient-purple flex items-center justify-center text-white">
-            <i class="fa fa-user"></i>
-          </div>
-          <span class="hidden md:block text-sm font-medium">管理员</span>
+    </div>
+    <!-- 成功弹窗 -->
+    <div id="successModal" class="fixed inset-0 z-50 bg-black/50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-2xl p-8 flex flex-col items-center gap-4 w-80">
+            <i class="fa fa-check-circle text-5xl text-green-500"></i>
+            <p class="font-semibold">操作成功！</p>
+            <button onclick="closeSuccess()" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-darkPurple">确定</button>
         </div>
-      </div>
-    </header>
+    </div>
 
-    <!-- 内容区 -->
-    <main class="flex-1 overflow-y-auto p-4 lg:p-8">
-      <div class="max-w-7xl mx-auto">
-
-        <!-- 工作台 -->
-        <section id="workbench" class="page-content">
-          <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-            <div>
-              <h1 class="text-[clamp(1.4rem,3vw,2rem)] font-bold text-slate-800">
-                <i class="fa fa-hand-sparkles text-primary mr-2"></i>欢迎回来，管理员
-              </h1>
-              <p class="text-slate-500 mt-1"><i class="fa fa-tasks mr-1"></i>当前有 8 项待处理检测修复任务。</p>
+    <div class="flex h-screen overflow-hidden">
+        <!-- 左侧侧边栏 精简4项 -->
+        <aside class="w-56 glass h-full text-white flex flex-col py-6 px-3">
+            <div class="px-3 mb-8">
+                <h2 class="text-xl font-bold flex items-center gap-2">
+                    <i class="fa fa-cube text-lightPurple"></i>
+                    AI检测修复系统
+                </h2>
             </div>
-            <div class="flex gap-3 mt-4 md:mt-0">
-              <button onclick="openModal()" class="gradient-purple-strong text-white px-5 py-2 rounded-full flex items-center gap-2 hover:opacity-90 transition">
-                <i class="fa fa-plus-circle"></i> 新建检测任务
-              </button>
-              <button class="border border-purple-100 bg-white/70 px-4 py-2 rounded-full hover:bg-white transition flex items-center gap-1">
-                <i class="fa fa-calendar-o"></i> 今日
-              </button>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div class="lg:col-span-2 bg-white/80 rounded-3xl p-6 card-soft">
-              <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center gap-3">
-                  <button class="px-3 py-1 rounded-xl bg-lightPurple text-sm"><i class="fa fa-clock-o mr-1"></i>24小时</button>
-                  <button class="px-3 py-1 rounded-xl bg-lightPurple text-sm"><i class="fa fa-calendar mr-1"></i>本周</button>
+            <nav class="flex-1 space-y-2">
+                <div class="px-3 py-2 rounded-lg cursor-pointer transition-all hover:bg-primary/40 menu-item" data-page="account">
+                    <i class="fa fa-user mr-3 w-5"></i>个人账号
                 </div>
-                <span class="text-sm text-slate-500"><i class="fa fa-calendar-check-o mr-1"></i>2026</span>
-              </div>
-              <canvas id="mainChart" height="260"></canvas>
-            </div>
-
-            <div class="bg-white/80 rounded-3xl p-6 card-soft">
-              <div class="flex items-center justify-between mb-2">
-                <p class="text-slate-500 text-sm">累计检测总量</p>
-                <div class="icon-box">
-                  <i class="fa fa-line-chart"></i>
+                <div class="px-3 py-2 rounded-lg cursor-pointer transition-all hover:bg-primary/40 menu-item" data-page="recharge">
+                    <i class="fa fa-credit-card mr-3 w-5"></i>额度充值
                 </div>
-              </div>
-              <span class="px-2 py-0.5 rounded-xl bg-primary/10 text-primaryDark text-xs"><i class="fa fa-arrow-up mr-1"></i>+13%</span>
-              <p class="text-3xl font-bold text-slate-800 mt-2">74,503</p>
-              <div class="grid grid-cols-2 gap-3 mt-5">
-                <div class="bg-lightPurple rounded-2xl p-4">
-                  <p class="text-xl font-semibold text-primaryDark">56% ↑</p>
-                  <p class="text-xs text-slate-500"><i class="fa fa-bar-chart mr-1"></i>环比上月</p>
+                <div class="px-3 py-2 rounded-lg cursor-pointer transition-all hover:bg-primary/40 menu-item" data-page="package">
+                    <i class="fa fa-gift mr-3 w-5"></i>套餐方案
                 </div>
-                <div class="bg-lightPurple rounded-2xl p-4">
-                  <p class="text-xl font-semibold text-primaryDark">27% ↑</p>
-                  <p class="text-xs text-slate-500"><i class="fa fa-area-chart mr-1"></i>环比上季度</p>
+                <div class="px-3 py-2 rounded-lg cursor-pointer transition-all hover:bg-primary/40 menu-item" data-page="setting">
+                    <i class="fa fa-cog mr-3 w-5"></i>系统设置
                 </div>
-              </div>
+            </nav>
+            <div class="mt-auto px-3 text-xs text-white/60">
+                见习演示后台 · v1.0
             </div>
+        </aside>
 
-            <div class="bg-white/80 rounded-3xl p-6 card-soft">
-              <div class="flex items-center justify-between mb-1">
-                <p class="text-slate-500 text-sm">今日完成任务</p>
-                <div class="icon-box">
-                  <i class="fa fa-check-square-o"></i>
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- 顶部导航栏 -->
+            <header class="glass px-6 py-4 flex items-center justify-between">
+                <div class="flex gap-2">
+                    <div class="px-4 py-2 rounded-lg cursor-pointer transition-all tab-item tab-active" data-tab="workbench">工作台</div>
+                    <div class="px-4 py-2 rounded-lg cursor-pointer transition-all tab-item hover:bg-primary/30" data-tab="video">视频检测</div>
+                    <div class="px-4 py-2 rounded-lg cursor-pointer transition-all tab-item hover:bg-primary/30" data-tab="script">剧本预审</div>
+                    <div class="px-4 py-2 rounded-lg cursor-pointer transition-all tab-item hover:bg-primary/30" data-tab="quota">额度面板</div>
+                    <div class="px-4 py-2 rounded-lg cursor-pointer transition-all tab-item hover:bg-primary/30" data-tab="record">检测记录</div>
                 </div>
-              </div>
-              <p class="text-3xl font-bold">24</p>
-              <div class="mt-6">
-                <div class="flex items-center justify-between mb-1">
-                  <p class="text-slate-500 text-sm">本月修复成功</p>
-                  <div class="icon-box">
-                    <i class="fa fa-wrench"></i>
-                  </div>
+                <div class="flex items-center gap-4">
+                    <i class="fa fa-bell-o text-white/80 cursor-pointer"></i>
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-full bg-lightPurple flex items-center justify-center text-white">管</div>
+                        <span class="text-white">管理员</span>
+                    </div>
                 </div>
-                <p class="text-2xl font-bold">2,500</p>
-              </div>
-            </div>
+            </header>
 
-            <div class="bg-white/80 rounded-3xl p-6 card-soft">
-              <div class="w-full h-32 rounded-2xl gradient-purple mb-4 flex items-end p-4 text-white">
-                <div>
-                  <p class="font-semibold"><i class="fa fa-magic mr-1"></i>AI一键检测</p>
-                  <p class="text-xs opacity-90">上传文件，自动检测+修复</p>
-                </div>
-              </div>
-              <div class="flex gap-3">
-                <button class="flex-1 py-2 rounded-xl bg-lightPurple text-primaryDark text-sm flex items-center justify-center gap-1">
-                  <i class="fa fa-upload"></i>上传文件
-                </button>
-                <button class="flex-1 py-2 rounded-xl bg-lightPurple text-primaryDark text-sm flex items-center justify-center gap-1">
-                  <i class="fa fa-file-text-o"></i>查看报告
-                </button>
-              </div>
-            </div>
+            <!-- 主内容区 -->
+            <main class="flex-1 p-6 overflow-y-auto">
+                <!-- 工作台页面 -->
+                <section id="page-workbench" class="page-content">
+                    <div class="mb-6">
+                        <h1 class="text-2xl font-bold text-white">欢迎回来，管理员</h1>
+                        <p class="text-white/70 mt-1">今日待处理任务 6 项，AI 检测运行中 3 项</p>
+                    </div>
+                    <!-- 统计卡片行 -->
+                    <div class="grid grid-cols-4 gap-5 mb-6">
+                        <div class="card-glass rounded-2xl p-5">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-sm text-slate-500">待检测任务</p>
+                                    <div class="text-3xl font-bold mt-2">12</div>
+                                </div>
+                                <div class="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
+                                    <i class="fa fa-file-video-o"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-glass rounded-2xl p-5">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-sm text-slate-500">高风险内容</p>
+                                    <div class="text-3xl font-bold mt-2">33</div>
+                                </div>
+                                <div class="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center text-red-500">
+                                    <i class="fa fa-exclamation-triangle"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-glass rounded-2xl p-5">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-sm text-slate-500">今日修复完成</p>
+                                    <div class="text-3xl font-bold mt-2">28</div>
+                                </div>
+                                <div class="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center text-green-500">
+                                    <i class="fa fa-check"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-glass rounded-2xl p-5">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-sm text-slate-500">API 调用次数</p>
+                                    <div class="text-3xl font-bold mt-2">7453</div>
+                                </div>
+                                <div class="w-10 h-10 rounded-xl bg-sky-100 flex items-center justify-center text-sky-500">
+                                    <i class="fa fa-plug"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-5">
+                        <div class="card-glass rounded-2xl p-5 col-span-2">
+                            <h3 class="font-semibold mb-4">本周检测趋势</h3>
+                            <canvas id="trendChart" height="220"></canvas>
+                        </div>
+                        <div class="card-glass rounded-2xl p-5">
+                            <h3 class="font-semibold mb-4">风险等级分布</h3>
+                            <canvas id="pieChart" height="220"></canvas>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-5 mt-5">
+                        <div class="card-glass rounded-2xl p-5">
+                            <h3 class="font-semibold mb-3">最近检测任务</h3>
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                                    <span>视频脚本_0128.txt</span>
+                                    <span class="px-2 py-1 rounded bg-amber-100 text-amber-600 text-xs">待审核</span>
+                                </div>
+                                <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                                    <span>剧本预审_193.txt</span>
+                                    <span class="px-2 py-1 rounded bg-sky-100 text-sky-600 text-xs">检测中</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span>广告片段_22.mp4</span>
+                                    <span class="px-2 py-1 rounded bg-green-100 text-green-600 text-xs">已完成</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-glass rounded-2xl p-5">
+                            <h3 class="font-semibold mb-3">额度使用情况</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <div class="flex justify-between text-sm mb-1">
+                                        <span>视频检测额度</span>
+                                        <span>128 / 500 次</span>
+                                    </div>
+                                    <div class="w-full bg-slate-200 rounded-full h-2">
+                                        <div class="bg-primary h-2 rounded-full" style="width: 25.6%"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-sm mb-1">
+                                        <span>API 调用额度</span>
+                                        <span>8210 / 20000 次</span>
+                                    </div>
+                                    <div class="w-full bg-slate-200 rounded-full h-2">
+                                        <div class="bg-sky-500 h-2 rounded-full" style="width: 41%"></div>
+                                    </div>
+                                </div>
+                                <button onclick="showSuccess()" class="w-full mt-3 py-2 bg-primary text-white rounded-lg hover:bg-darkPurple">去充值</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
 
-            <div class="lg:col-span-2 bg-white/80 rounded-3xl p-6 card-soft">
-              <div class="flex justify-between items-center mb-4">
-                <h3 class="font-semibold text-slate-800"><i class="fa fa-history text-primary mr-2"></i>最近检测任务</h3>
-                <span class="text-xs text-slate-400"><i class="fa fa-list-ol mr-1"></i>1-10 of 23</span>
-              </div>
-              <div class="overflow-x-auto">
-                <table class="w-full text-sm">
-                  <thead>
-                    <tr class="text-slate-400 border-b border-purple-100">
-                      <th class="text-left pb-3 font-normal"><i class="fa fa-file-o mr-1"></i>文件名称</th>
-                      <th class="text-left pb-3 font-normal"><i class="fa fa-bolt mr-1"></i>风险分值</th>
-                      <th class="text-left pb-3 font-normal"><i class="fa fa-tag mr-1"></i>任务类型</th>
-                      <th class="text-left pb-3 font-normal"><i class="fa fa-clock-o mr-1"></i>提交时间</th>
-                      <th class="text-left pb-3 font-normal"><i class="fa fa-info-circle mr-1"></i>状态</th>
-                    </tr>
-                  </thead>
-                  <tbody class="divide-y divide-purple-50">
-                    <tr>
-                      <td class="py-3">report_001.pdf</td>
-                      <td>20</td>
-                      <td><span class="px-2 py-1 rounded-xl bg-amber-50 text-amber-600 text-xs">基础检测</span></td>
-                      <td>11.09.2026</td>
-                      <td><span class="text-green-500"><i class="fa fa-check-circle mr-1"></i>已修复完成</span></td>
-                    </tr>
-                    <tr>
-                      <td class="py-3">data_set.xlsx</td>
-                      <td>12</td>
-                      <td><span class="px-2 py-1 rounded-xl bg-amber-50 text-amber-600 text-xs">基础检测</span></td>
-                      <td>11.09.2026</td>
-                      <td><span class="text-green-500"><i class="fa fa-check-circle mr-1"></i>已修复完成</span></td>
-                    </tr>
-                    <tr>
-                      <td class="py-3">article.docx</td>
-                      <td>16</td>
-                      <td><span class="px-2 py-1 rounded-xl bg-purple-50 text-purple-600 text-xs">深度检测</span></td>
-                      <td>11.09.2026</td>
-                      <td><span class="text-slate-400"><i class="fa fa-hourglass-half mr-1"></i>待修复</span></td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </section>
+                <!-- 视频检测 -->
+                <section id="page-video" class="page-content hidden">
+                    <div class="card-glass rounded-2xl p-6">
+                        <h2 class="text-xl font-bold mb-4">视频检测上传</h2>
+                        <div class="border-2 border-dashed border-primary/30 rounded-xl p-10 text-center">
+                            <i class="fa fa-cloud-upload text-4xl text-primary mb-3"></i>
+                            <p>点击或者拖拽视频文件到这里上传</p>
+                            <p class="text-xs text-slate-400 mt-2">支持 mp4、mov，单文件上限 200MB</p>
+                            <button class="mt-4 px-5 py-2 bg-primary text-white rounded-lg hover:bg-darkPurple">选择文件</button>
+                        </div>
+                    </div>
+                </section>
+                <!-- 剧本预审 -->
+                <section id="page-script" class="page-content hidden">
+                    <div class="card-glass rounded-2xl p-6">
+                        <h2 class="text-xl font-bold mb-4">剧本合规预审</h2>
+                        <textarea class="w-full border border-slate-200 rounded-xl p-4 h-52" placeholder="粘贴剧本文本，AI 自动识别违规内容..."></textarea>
+                        <button onclick="showLoading()" class="mt-4 px-5 py-2 bg-primary text-white rounded-lg hover:bg-darkPurple">开始预审</button>
+                    </div>
+                </section>
+                <!-- 额度面板 -->
+                <section id="page-quota" class="page-content hidden">
+                    <div class="card-glass rounded-2xl p-6">
+                        <h2 class="text-xl font-bold mb-4">额度明细面板</h2>
+                        <p>查看你的检测次数、API 额度消耗记录</p>
+                    </div>
+                </section>
+                <!-- 检测记录 -->
+                <section id="page-record" class="page-content hidden">
+                    <div class="card-glass rounded-2xl p-6">
+                        <h2 class="text-xl font-bold mb-4">历史检测记录</h2>
+                        <table class="w-full mt-4">
+                            <thead>
+                                <tr class="border-b border-slate-200">
+                                    <th class="text-left py-2">文件名</th>
+                                    <th class="text-left py-2">类型</th>
+                                    <th class="text-left py-2">状态</th>
+                                    <th class="text-left py-2">时间</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-b border-slate-100">
+                                    <td>ad001.mp4</td>
+                                    <td>视频检测</td>
+                                    <td><span class="text-green-500">已通过</span></td>
+                                    <td>2026-11-10</td>
+                                </tr>
+                                <tr>
+                                    <td>script005.txt</td>
+                                    <td>剧本预审</td>
+                                    <td><span class="text-red-500">存在风险</span></td>
+                                    <td>2026-11-10</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
 
-        <!-- 视频检测 -->
-        <section id="video" class="page-content hidden">
-          <div class="mb-6">
-            <h1 class="text-[clamp(1.4rem,3vw,2rem)] font-bold text-slate-800">
-              <i class="fa fa-video-camera text-primary mr-2"></i>视频检测
-            </h1>
-            <p class="text-slate-500 mt-1"><i class="fa fa-eye mr-1"></i>上传视频，识别违规画面、音频、字幕内容。</p>
-          </div>
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div class="lg:col-span-2 bg-white/80 rounded-3xl p-6 card-soft">
-              <div class="border-2 border-dashed border-softPurple rounded-3xl p-10 text-center">
-                <i class="fa fa-video-camera text-4xl text-primary mb-4"></i>
-                <p class="text-slate-600 mb-2">点击或者拖拽视频到此处上传</p>
-                <p class="text-xs text-slate-400"><i class="fa fa-file-video-o mr-1"></i>支持 mp4、mov、avi，最大 200MB</p>
-                <button class="mt-4 px-5 py-2 rounded-full gradient-purple-strong text-white flex items-center gap-2">
-                  <i class="fa fa-folder-open"></i>选择视频文件
-                </button>
-              </div>
-            </div>
-            <div class="bg-white/80 rounded-3xl p-6 card-soft">
-              <h3 class="font-semibold mb-4"><i class="fa fa-sliders text-primary mr-2"></i>检测选项</h3>
-              <div class="space-y-3">
-                <label class="flex items-center gap-2"><input type="checkbox" checked class="accent-primaryDark" /> <i class="fa fa-picture-o mr-1"></i>画面违规检测</label>
-                <label class="flex items-center gap-2"><input type="checkbox" checked class="accent-primaryDark" /> <i class="fa fa-volume-up mr-1"></i>音频违规检测</label>
-                <label class="flex items-center gap-2"><input type="checkbox" checked class="accent-primaryDark" /> <i class="fa fa-subtitle mr-1"></i>字幕文本检测</label>
-                <label class="flex items-center gap-2"><input type="checkbox" class="accent-primaryDark" /> <i class="fa fa-brain mr-1"></i>AI内容溯源检测</label>
-              </div>
-              <button onclick="openModal()" class="w-full mt-6 py-3 rounded-2xl gradient-purple-strong text-white font-medium flex items-center justify-center gap-2">
-                <i class="fa fa-play-circle"></i>开始检测
-              </button>
-            </div>
-            <div class="lg:col-span-3 bg-white/80 rounded-3xl p-6 card-soft">
-              <h3 class="font-semibold mb-4"><i class="fa fa-list text-primary mr-2"></i>视频检测队列</h3>
-              <table class="w-full text-sm">
-                <thead>
-                  <tr class="text-slate-400 border-b border-purple-100">
-                    <th class="text-left pb-3 font-normal"><i class="fa fa-film mr-1"></i>视频名称</th>
-                    <th class="text-left pb-3 font-normal"><i class="fa fa-clock-o mr-1"></i>时长</th>
-                    <th class="text-left pb-3 font-normal"><i class="fa fa-calendar mr-1"></i>提交时间</th>
-                    <th class="text-left pb-3 font-normal"><i class="fa fa-signal mr-1"></i>状态</th>
-                    <th class="text-left pb-3 font-normal"><i class="fa fa-cogs mr-1"></i>操作</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-purple-50">
-                  <tr>
-                    <td class="py-3">ad_video_01.mp4</td>
-                    <td>00:01:24</td>
-                    <td>11.09.2026</td>
-                    <td><span class="text-green-500"><i class="fa fa-check mr-1"></i>检测完成</span></td>
-                    <td><a class="text-primaryDark cursor-pointer"><i class="fa fa-file-text-o mr-1"></i>查看报告</a></td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </section>
+                <!-- 侧边菜单对应的页面 -->
+                <section id="page-account" class="page-content hidden">
+                    <div class="card-glass rounded-2xl p-6">
+                        <h2 class="text-xl font-bold mb-4">个人账号信息</h2>
+                        <p>账号：管理员 | 会员有效期：2027-05-20</p>
+                    </div>
+                </section>
+                <section id="page-recharge" class="page-content hidden">
+                    <div class="card-glass rounded-2xl p-6">
+                        <h2 class="text-xl font-bold mb-4">额度充值</h2>
+                    </div>
+                </section>
+                <section id="page-package" class="page-content hidden">
+                    <div class="card-glass rounded-2xl p-6">
+                        <h2 class="text-xl font-bold mb-4">套餐方案</h2>
+                    </div>
+                </section>
+                <section id="page-setting" class="page-content hidden">
+                    <div class="card-glass rounded-2xl p-6">
+                        <h2 class="text-xl font-bold mb-4">系统设置</h2>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
 
-        <!-- 剧本合规预审 -->
-        <section id="script" class="page-content hidden">
-          <div class="mb-6">
-            <h1 class="text-[clamp(1.4rem,3vw,2rem)] font-bold text-slate-800">
-              <i class="fa fa-file-text text-primary mr-2"></i>剧本合规预审
-            </h1>
-            <p class="text-slate-500 mt-1"><i class="fa fa-file-text-o mr-1"></i>剧本文案、口播稿、短视频脚本合规风险筛查。</p>
-          </div>
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div class="lg:col-span-2 bg-white/80 rounded-3xl p-6 card-soft">
-              <label class="font-medium block mb-2"><i class="fa fa-pencil mr-1"></i>粘贴剧本内容</label>
-              <textarea class="w-full h-60 p-4 border border-purple-100 rounded-2xl outline-none focus:ring-2 focus:ring-primary/40" placeholder="在这里粘贴脚本、口播文案、剧本文本..."></textarea>
-              <div class="flex justify-end mt-4 gap-3">
-                <button class="px-4 py-2 border border-purple-100 rounded-xl flex items-center gap-1">
-                  <i class="fa fa-trash-o"></i>清空
-                </button>
-                <button onclick="openModal()" class="px-5 py-2 rounded-full gradient-purple-strong text-white flex items-center gap-2">
-                  <i class="fa fa-paper-plane"></i>提交预审
-                </button>
-              </div>
-            </div>
-            <div class="bg-white/80 rounded-3xl p-6 card-soft">
-              <h3 class="font-semibold mb-4"><i class="fa fa-filter text-primary mr-2"></i>预审维度</h3>
-              <div class="space-y-3">
-                <label class="flex items-center gap-2"><input type="checkbox" checked class="accent-primaryDark" /> <i class="fa fa-exclamation-triangle mr-1"></i>敏感词筛查</label>
-                <label class="flex items-center gap-2"><input type="checkbox" checked class="accent-primaryDark" /> <i class="fa fa-bullhorn mr-1"></i>广告合规校验</label>
-                <label class="flex items-center gap-2"><input type="checkbox" checked class="accent-primaryDark" /> <i class="fa fa-copyright mr-1"></i>版权风险检测</label>
-                <label class="flex items-center gap-2"><input type="checkbox" class="accent-primaryDark" /> <i class="fa fa-heart mr-1"></i>价值观风险识别</label>
-              </div>
-            </div>
-          </div>
-        </section>
+    <script>
+        // 加载弹窗
+        function showLoading() {
+            document.getElementById('loadingModal').classList.remove('hidden');
+            setTimeout(() => {
+                document.getElementById('loadingModal').classList.add('hidden');
+                showSuccess();
+            }, 1200)
+        }
+        function showSuccess() {
+            document.getElementById('successModal').classList.remove('hidden');
+        }
+        function closeSuccess() {
+            document.getElementById('successModal').classList.add('hidden');
+        }
 
-        <!-- 额度面板 -->
-        <section id="quota" class="page-content hidden">
-          <div class="mb-6">
-            <h1 class="text-[clamp(1.4rem,3vw,2rem)] font-bold text-slate-800">
-              <i class="fa fa-tachometer text-primary mr-2"></i>额度面板
-            </h1>
-            <p class="text-slate-500 mt-1"><i class="fa fa-bar-chart mr-1"></i>查看各项检测服务剩余额度、消耗明细。</p>
-          </div>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="bg-white/80 rounded-3xl p-6 card-soft">
-              <div class="flex items-center justify-between mb-2">
-                <p class="text-slate-500 text-sm">视频检测额度</p>
-                <div class="icon-box">
-                  <i class="fa fa-video-camera"></i>
-                </div>
-              </div>
-              <p class="text-3xl font-bold mt-2">128 / 500 次</p>
-              <div class="w-full bg-softPurple rounded-full h-2.5 mt-4 overflow-hidden">
-                <div class="gradient-purple-strong h-2.5 rounded-full" style="width:25%"></div>
-              </div>
-            </div>
-            <div class="bg-white/80 rounded-3xl p-6 card-soft">
-              <div class="flex items-center justify-between mb-2">
-                <p class="text-slate-500 text-sm">剧本预审额度</p>
-                <div class="icon-box">
-                  <i class="fa fa-file-text"></i>
-                </div>
-              </div>
-              <p class="text-3xl font-bold mt-2">362 / 1000 次</p>
-              <div class="w-full bg-softPurple rounded-full h-2.5 mt-4 overflow-hidden">
-                <div class="gradient-purple-strong h-2.5 rounded-full" style="width:36%"></div>
-              </div>
-            </div>
-            <div class="bg-white/80 rounded-3xl p-6 card-soft">
-              <div class="flex items-center justify-between mb-2">
-                <p class="text-slate-500 text-sm">API调用额度</p>
-                <div class="icon-box">
-                  <i class="fa fa-code"></i>
-                </div>
-              </div>
-              <p class="text-3xl font-bold mt-2">8,210 / 20,000 次</p>
-              <div class="w-full bg-softPurple rounded-full h-2.5 mt-4 overflow-hidden">
-                <div class="gradient-purple-strong h-2.5 rounded-full" style="width:41%"></div>
-              </div>
-            </div>
-          </div>
-        </section>
+        // 顶部tab切换
+        const tabItems = document.querySelectorAll('.tab-item');
+        tabItems.forEach(tab => {
+            tab.onclick = () => {
+                tabItems.forEach(t => t.classList.remove('tab-active'));
+                tab.classList.add('tab-active');
+                const tabName = tab.dataset.tab;
+                document.querySelectorAll('.page-content').forEach(p=>p.classList.add('hidden'));
+                document.getElementById('page-' + tabName).classList.remove('hidden');
+            }
+        })
+        // 侧边菜单切换
+        const menuItems = document.querySelectorAll('.menu-item');
+        menuItems.forEach(menu => {
+            menu.onclick = () => {
+                menuItems.forEach(m => m.classList.remove('menu-active'));
+                menu.classList.add('menu-active');
+                const pageName = menu.dataset.page;
+                document.querySelectorAll('.page-content').forEach(p=>p.classList.add('hidden'));
+                document.getElementById('page-' + pageName).classList.remove('hidden');
+            }
+        })
 
-        <!-- 检测记录 -->
-        <section id="record" class="page-content hidden">
-          <div class="mb-6">
-            <h1 class="text-[clamp(1.4rem,3vw,2rem)] font-bold text-slate-800">
-              <i class="fa fa-list-alt text-primary mr-2"></i>检测记录
-            </h1>
-            <p class="text-slate-500 mt-1"><i class="fa fa-history mr-1"></i>全部历史检测任务记录，支持筛选、导出报告。</p>
-          </div>
-          <div class="bg-white/80 rounded-3xl p-6 card-soft">
-            <div class="flex flex-wrap gap-3 mb-4">
-              <select class="px-3 py-2 border border-purple-100 rounded-xl">
-                <option>全部类型</option>
-                <option>视频检测</option>
-                <option>剧本预审</option>
-              </select>
-              <input type="date" class="px-3 py-2 border border-purple-100 rounded-xl" />
-              <button class="px-4 py-2 rounded-xl gradient-purple-strong text-white flex items-center gap-1">
-                <i class="fa fa-filter"></i>筛选
-              </button>
-            </div>
-            <table class="w-full text-sm">
-              <thead>
-                <tr class="text-slate-400 border-b border-purple-100">
-                  <th class="text-left pb-3 font-normal"><i class="fa fa-hashtag mr-1"></i>任务ID</th>
-                  <th class="text-left pb-3 font-normal"><i class="fa fa-tag mr-1"></i>类型</th>
-                  <th class="text-left pb-3 font-normal"><i class="fa fa-file-o mr-1"></i>名称</th>
-                  <th class="text-left pb-3 font-normal"><i class="fa fa-calendar mr-1"></i>提交时间</th>
-                  <th class="text-left pb-3 font-normal"><i class="fa fa-flag mr-1"></i>结果</th>
-                  <th class="text-left pb-3 font-normal"><i class="fa fa-cogs mr-1"></i>操作</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-purple-50">
-                <tr>
-                  <td class="py-3">T20261109001</td>
-                  <td>剧本预审</td>
-                  <td>短视频脚本A</td>
-                  <td>2026-11-09</td>
-                  <td><span class="text-green-500"><i class="fa fa-check mr-1"></i>合规</span></td>
-                  <td><a class="text-primaryDark cursor-pointer"><i class="fa fa-file-text-o mr-1"></i>查看报告</a></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <!-- ========== 侧边栏新增页面 ========== -->
-        <!-- 个人账号 -->
-        <section id="account" class="page-content hidden">
-          <div class="mb-6">
-            <h1 class="text-[clamp(1.4rem,3vw,2rem)] font-bold text-slate-800">
-              <i class="fa fa-user text-primary mr-2"></i>个人账号
-            </h1>
-            <p class="text-slate-500 mt-1">账号基础信息、会员有效期、额度汇总</p>
-          </div>
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div class="bg-white/80 rounded-3xl p-6 card-soft">
-              <div class="flex items-center gap-4 mb-6">
-                <div class="w-16 h-16 rounded-full gradient-purple flex items-center justify-center text-white text-2xl">
-                  <i class="fa fa-user"></i>
-                </div>
-                <div>
-                  <h3 class="font-bold text-lg">管理员</h3>
-                  <span class="text-sm text-slate-500">账号ID：ACC2026001</span>
-                </div>
-              </div>
-              <div class="space-y-4 text-sm">
-                <div class="flex justify-between py-2 border-b border-purple-50">
-                  <span class="text-slate-500">当前套餐</span>
-                  <span class="font-medium">专业版</span>
-                </div>
-                <div class="flex justify-between py-2 border-b border-purple-50">
-                  <span class="text-slate-500">会员到期时间</span>
-                  <span class="font-medium">2026-12-15</span>
-                </div>
-                <div class="flex justify-between py-2 border-b border-purple-50">
-                  <span class="text-slate-500">注册时间</span>
-                  <span class="font-medium">2026-09-01</span>
-                </div>
-              </div>
-            </div>
-            <div class="lg:col-span-2 bg-white/80 rounded-3xl p-6 card-soft">
-              <h3 class="font-semibold mb-4"><i class="fa fa-pie-chart text-primary mr-2"></i>额度总览</h3>
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="bg-lightPurple rounded-2xl p-4">
-                  <p class="text-slate-500 text-sm">视频检测剩余</p>
-                  <p class="text-2xl font-bold mt-1">128 / 500</p>
-                </div>
-                <div class="bg-lightPurple rounded-2xl p-4">
-                  <p class="text-slate-500 text-sm">剧本预审剩余</p>
-                  <p class="text-2xl font-bold mt-1">362 / 1000</p>
-                </div>
-                <div class="bg-lightPurple rounded-2xl p-4">
-                  <p class="text-slate-500 text-sm">API调用剩余</p>
-                  <p class="text-2xl font-bold mt-1">8210 / 20000</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- 额度充值 -->
-        <section id="recharge" class="page-content hidden">
-          <div class="mb-6">
-            <h1 class="text-[clamp(1.4rem,3vw,2rem)] font-bold text-slate-800">
-              <i class="fa fa-credit-card text-primary mr-2"></i>额度充值
-            </h1>
-            <p class="text-slate-500 mt-1">单独购买检测次数，即时到账</p>
-          </div>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="bg-white/80 rounded-3xl p-6 card-soft">
-              <h3 class="font-semibold mb-2"><i class="fa fa-video-camera text-primary mr-2"></i>视频检测次数包</h3>
-              <p class="text-3xl font-bold">¥39 <span class="text-sm font-normal text-slate-400">/100次</span></p>
-              <button class="w-full mt-5 py-3 rounded-2xl gradient-purple-strong text-white font-medium">立即购买</button>
-            </div>
-            <div class="bg-white/80 rounded-3xl p-6 card-soft">
-              <h3 class="font-semibold mb-2"><i class="fa fa-file-text text-primary mr-2"></i>剧本预审次数包</h3>
-              <p class="text-3xl font-bold">¥29 <span class="text-sm font-normal text-slate-400">/200次</span></p>
-              <button class="w-full mt-5 py-3 rounded-2xl gradient-purple-strong text-white font-medium">立即购买</button>
-            </div>
-            <div class="bg-white/80 rounded-3xl p-6 card-soft">
-              <h3 class="font-semibold mb-2"><i class="fa fa-code text-primary mr-2"></i>API调用次数包</h3>
-              <p class="text-3xl font-bold">¥49 <span class="text-sm font-normal text-slate-400">/5000次</span></p>
-              <button class="w-full mt-5 py-3 rounded-2xl gradient-purple-strong text-white font-medium">立即购买</button>
-            </div>
-          </div>
-        </section>
-
-        <!-- 套餐方案 -->
-        <section id="package" class="page-content hidden">
-          <div class="mb-6">
-            <h1 class="text-[clamp(1.4rem,3vw,2rem)] font-bold text-slate-800">
-              <i class="fa fa-gift text-primary mr-2"></i>套餐方案
-            </h1>
-            <p class="text-slate-500 mt-1">查看套餐权益、规格、价格，升级套餐。</p>
-          </div>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="bg-white/80 rounded-3xl p-6 card-soft">
-              <h3 class="font-bold text-lg"><i class="fa fa-paper-plane mr-1"></i>免费版</h3>
-              <p class="text-3xl font-bold mt-2">¥0<span class="text-sm font-normal text-slate-400"> /月</span></p>
-              <ul class="mt-4 space-y-2 text-sm text-slate-600">
-                <li><i class="fa fa-check text-green-500 mr-2"></i>视频检测 20次/月</li>
-                <li><i class="fa fa-check text-green-500 mr-2"></i>剧本预审 50次/月</li>
-                <li><i class="fa fa-times text-red-400 mr-2"></i>API接口调用</li>
-              </ul>
-              <button class="w-full mt-5 py-3 border border-purple-100 rounded-2xl flex items-center justify-center gap-1">
-                <i class="fa fa-check-circle"></i>当前套餐
-              </button>
-            </div>
-            <div class="bg-white/80 rounded-3xl p-6 card-soft ring-2 ring-primary relative">
-              <span class="absolute top-4 right-4 text-xs gradient-purple-strong text-white px-3 py-1 rounded-full"><i class="fa fa-star mr-1"></i>推荐</span>
-              <h3 class="font-bold text-lg mt-2"><i class="fa fa-rocket mr-1"></i>专业版</h3>
-              <p class="text-3xl font-bold mt-2">¥99<span class="text-sm font-normal text-slate-400"> /月</span></p>
-              <ul class="mt-4 space-y-2 text-sm text-slate-600">
-                <li><i class="fa fa-check text-green-500 mr-2"></i>视频检测 500次/月</li>
-                <li><i class="fa fa-check text-green-500 mr-2"></i>剧本预审 1000次/月</li>
-                <li><i class="fa fa-check text-green-500 mr-2"></i>API调用 20000次/月</li>
-              </ul>
-              <button onclick="openModal()" class="w-full mt-5 py-3 rounded-2xl gradient-purple-strong text-white font-medium flex items-center justify-center gap-2">
-                <i class="fa fa-arrow-up"></i>立即升级
-              </button>
-            </div>
-            <div class="bg-white/80 rounded-3xl p-6 card-soft">
-              <h3 class="font-bold text-lg"><i class="fa fa-building mr-1"></i>企业版</h3>
-              <p class="text-3xl font-bold mt-2">¥399<span class="text-sm font-normal text-slate-400"> /月</span></p>
-              <ul class="mt-4 space-y-2 text-sm text-slate-600">
-                <li><i class="fa fa-check text-green-500 mr-2"></i>视频检测 3000次/月</li>
-                <li><i class="fa fa-check text-green-500 mr-2"></i>剧本预审 5000次/月</li>
-                <li><i class="fa fa-check text-green-500 mr-2"></i>API不限量扩容</li>
-              </ul>
-              <button onclick="openModal()" class="w-full mt-5 py-3 border border-purple-100 rounded-2xl flex items-center justify-center gap-1">
-                <i class="fa fa-phone"></i>联系销售
-              </button>
-            </div>
-          </div>
-        </section>
-
-        <!-- 系统设置（放API密钥） -->
-        <section id="setting" class="page-content hidden">
-          <div class="mb-6">
-            <h1 class="text-[clamp(1.4rem,3vw,2rem)] font-bold text-slate-800">
-              <i class="fa fa-cog text-primary mr-2"></i>系统设置
-            </h1>
-            <p class="text-slate-500 mt-1">API密钥管理、基础偏好设置</p>
-          </div>
-          <div class="bg-white/80 rounded-3xl p-6 card-soft">
-            <div class="flex justify-between items-center mb-4">
-              <h3 class="font-semibold"><i class="fa fa-key text-primary mr-2"></i>密钥列表</h3>
-              <button onclick="openModal()" class="px-4 py-2 rounded-full gradient-purple-strong text-white text-sm flex items-center gap-1">
-                <i class="fa fa-plus"></i>新建密钥
-              </button>
-            </div>
-            <table class="w-full text-sm">
-              <thead>
-                <tr class="text-slate-400 border-b border-purple-100">
-                  <th class="text-left pb-3 font-normal"><i class="fa fa-tag mr-1"></i>密钥名称</th>
-                  <th class="text-left pb-3 font-normal"><i class="fa fa-key mr-1"></i>Key</th>
-                  <th class="text-left pb-3 font-normal"><i class="fa fa-calendar mr-1"></i>创建时间</th>
-                  <th class="text-left pb-3 font-normal"><i class="fa fa-toggle-on mr-1"></i>状态</th>
-                  <th class="text-left pb-3 font-normal"><i class="fa fa-wrench mr-1"></i>操作</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-purple-50">
-                <tr>
-                  <td class="py-3">开发环境密钥</td>
-                  <td>sk-************************789</td>
-                  <td>2026-10-01</td>
-                  <td><span class="text-green-500"><i class="fa fa-check mr-1"></i>启用</span></td>
-                  <td class="flex gap-3 text-primaryDark">
-                    <span class="cursor-pointer"><i class="fa fa-refresh mr-1"></i>重置</span>
-                    <span class="cursor-pointer"><i class="fa fa-trash-o mr-1"></i>删除</span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-      </div>
-    </main>
-  </div>
-</div>
-
-<script>
-  let chartInstance = null;
-
-  function openModal() {
-    document.getElementById("successModal").style.display = "flex";
-  }
-  function closeModal() {
-    document.getElementById("successModal").style.display = "none";
-  }
-
-  // 【修复重点：切换函数，自动清除其他激活样式】
-  function switchPage(targetId) {
-    // 1. 隐藏全部页面
-    const allPages = document.querySelectorAll(".page-content");
-    allPages.forEach((p) => p.classList.add("hidden"));
-    document.getElementById(targetId).classList.remove("hidden");
-
-    // 2. 顶部Tab激活样式重置
-    const topTabs = document.querySelectorAll(".top-tab");
-    topTabs.forEach((tab) => {
-      tab.classList.remove("top-tab-active");
-      tab.classList.add("hover:bg-softPurple/70");
-    });
-    if(event && event.currentTarget.classList.contains('top-tab')){
-      event.currentTarget.classList.add("top-tab-active");
-      event.currentTarget.classList.remove("hover:bg-softPurple/70");
-    }
-
-    // 3. 侧边菜单激活样式重置
-    const sideMenus = document.querySelectorAll(".side-menu-item");
-    sideMenus.forEach((menu) => {
-      menu.classList.remove("menu-active");
-      menu.classList.add("hover:bg-softPurple/70");
-    });
-    if(event && event.currentTarget.classList.contains('side-menu-item')){
-      event.currentTarget.classList.add("menu-active");
-      event.currentTarget.classList.remove("hover:bg-softPurple/70");
-    }
-
-    if (targetId === "workbench") {
-      setTimeout(renderChart, 100);
-    }
-  }
-
-  function renderChart() {
-    const canvasDom = document.getElementById("mainChart");
-    if (!canvasDom) return;
-    if (chartInstance) chartInstance.destroy();
-
-    const ctx = canvasDom.getContext("2d");
-    chartInstance = new Chart(ctx, {
-      type: "bar",
-      data: {
-        labels: ["一月", "二月", "三月", "四月"],
-        datasets: [
-          {
-            label: "检测任务数量",
-            data: [20, 24, 28, 22],
-            backgroundColor: [
-              "rgba(139, 92, 246, 0.55)",
-              "rgba(124, 58, 237, 0.65)",
-              "rgba(109, 40, 217, 0.75)",
-              "rgba(139, 92, 246, 0.55)",
-            ],
-            borderRadius: 14,
-            borderSkipped: false,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-          y: {
-            beginAtZero: true,
-            grid: { color: "#f1efff" },
-          },
-          x: {
-            grid: { display: false },
-          },
-        },
-      },
-    });
-  }
-
-  window.onload = function () {
-    setTimeout(() => {
-      document.getElementById("loadingMask").style.display = "none";
-    }, 800);
-    renderChart();
-  };
-</script>
+        // 图表
+        const trendCtx = document.getElementById('trendChart').getContext('2d');
+        new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: ['周一','周二','周三','周四','周五','周六','周日'],
+                datasets: [{
+                    label: '检测数量',
+                    data: [120, 190, 160, 240, 280, 210, 170],
+                    borderColor: '#6B46C1',
+                    backgroundColor: 'rgba(107,70,193,0.15)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: { responsive:true, maintainAspectRatio:false }
+        })
+        const pieCtx = document.getElementById('pieChart').getContext('2d');
+        new Chart(pieCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['高风险','中风险','低风险','无风险'],
+                datasets: [{
+                    data: [18,34,26,22],
+                    backgroundColor: ['#ef4444','#f59e0b','#38bdf8','#a78bfa']
+                }]
+            },
+            options: { responsive:true, maintainAspectRatio:false }
+        })
+    </script>
 </body>
 </html>
