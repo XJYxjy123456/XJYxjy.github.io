@@ -66,6 +66,14 @@
             <button onclick="closeAllModal()" class="mt-4 px-4 py-2 bg-primary rounded-lg">确定</button>
         </div>
     </div>
+    <!-- 提示弹窗 -->
+    <div id="tipModal" class="mask hidden">
+        <div class="glass-card p-6 w-80 text-center">
+            <i class="fa fa-exclamation-circle text-4xl text-yellow-400"></i>
+            <p id="tipText" class="mt-3"></p>
+            <button onclick="closeTipModal()" class="mt-4 px-4 py-2 bg-primary rounded-lg">确定</button>
+        </div>
+    </div>
 
     <div class="flex h-screen overflow-hidden">
         <!-- 左侧侧边栏 -->
@@ -183,9 +191,11 @@
                     <h2 class="text-2xl font-semibold mb-4">视频检测</h2>
                     <div class="glass-card p-5">
                         <p class="text-slate-300 mb-4">上传视频文件，AI 自动识别违规画面、音频、字幕，支持一键修复</p>
-                        <div class="border border-dashed border-white/25 rounded-xl p-8 text-center mb-4">
+                        <div class="border border-dashed border-white/25 rounded-xl p-8 text-center mb-4 cursor-pointer" onclick="document.getElementById('videoFile').click()">
                             <i class="fa fa-upload text-3xl text-primary"></i>
                             <p class="mt-3 text-slate-300">拖拽视频到此 / 点击选择文件</p>
+                            <input type="file" id="videoFile" accept="video/*" class="hidden">
+                            <p id="videoFileName" class="mt-2 text-primary"></p>
                         </div>
                         <div class="flex flex-wrap gap-3 mb-4">
                             <label class="flex items-center gap-2">
@@ -198,7 +208,7 @@
                                 <input type="checkbox"> 字幕识别检测
                             </label>
                         </div>
-                        <button onclick="showLoad()" class="px-5 py-2.5 bg-primary rounded-lg hover:bg-darkPurple transition">提交 AI 检测</button>
+                        <button onclick="submitVideoCheck()" class="px-5 py-2.5 bg-primary rounded-lg hover:bg-darkPurple transition">提交 AI 检测</button>
                     </div>
                 </section>
 
@@ -207,7 +217,7 @@
                     <h2 class="text-2xl font-semibold mb-4">剧本合规预审</h2>
                     <div class="glass-card p-5">
                         <p class="text-slate-300 mb-4">粘贴短视频、广告剧本文本，识别敏感内容，自动给出修改方案</p>
-                        <textarea class="w-full h-40 rounded-lg bg-white/10 border border-white/20 p-3 placeholder:text-slate-400" placeholder="粘贴你的剧本内容..."></textarea>
+                        <textarea id="scriptTextarea" class="w-full h-40 rounded-lg bg-white/10 border border-white/20 p-3 placeholder:text-slate-400" placeholder="粘贴你的剧本内容..."></textarea>
                         <div class="flex flex-wrap gap-3 mt-4 mb-4">
                             <label class="flex items-center gap-2">
                                 <input type="checkbox" checked> 敏感词筛查
@@ -216,7 +226,7 @@
                                 <input type="checkbox"> 导向风险识别
                             </label>
                         </div>
-                        <button onclick="showLoad()" class="px-5 py-2.5 bg-primary rounded-lg hover:bg-darkPurple transition">开始预审</button>
+                        <button onclick="submitScriptCheck()" class="px-5 py-2.5 bg-primary rounded-lg hover:bg-darkPurple transition">开始预审</button>
                     </div>
                 </section>
 
@@ -461,6 +471,40 @@
         function closeAllModal() {
             document.getElementById("loadingModal").classList.add("hidden");
             document.getElementById("successModal").classList.add("hidden");
+        }
+        function showTip(text) {
+            document.getElementById("tipText").innerText = text;
+            document.getElementById("tipModal").classList.remove("hidden");
+        }
+        function closeTipModal() {
+            document.getElementById("tipModal").classList.add("hidden");
+        }
+
+        // 视频文件选择
+        const videoFileInput = document.getElementById("videoFile");
+        videoFileInput.onchange = function () {
+            if (this.files.length > 0) {
+                document.getElementById("videoFileName").innerText = "已选择：" + this.files[0].name;
+            }
+        }
+
+        // 视频提交校验
+        function submitVideoCheck() {
+            const file = videoFileInput.files[0];
+            if (!file) {
+                showTip("请先选择视频文件！");
+                return;
+            }
+            showLoad();
+        }
+        // 剧本提交校验
+        function submitScriptCheck() {
+            const textVal = document.getElementById("scriptTextarea").value.trim();
+            if (!textVal) {
+                showTip("请先输入剧本内容！");
+                return;
+            }
+            showLoad();
         }
 
         // 图表
