@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI 检测与修复一体化系统</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https:<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 检测与修复一体化系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
     <script>
@@ -63,10 +70,10 @@
         <div class="glass-card p-6 w-80 text-center">
             <i class="fa fa-check-circle text-4xl text-green-400"></i>
             <p class="mt-3">提交成功</p>
-            <button onclick="closeAllModal()" class="mt-4 px-4 py-2 bg-primary rounded-lg">确定</button>
+            <button onclick="closeSuccessModal()" class="mt-4 px-4 py-2 bg-primary rounded-lg">确定</button>
         </div>
     </div>
-    <!-- 提示弹窗 -->
+    <!-- 提示警告弹窗 -->
     <div id="tipModal" class="mask hidden">
         <div class="glass-card p-6 w-80 text-center">
             <i class="fa fa-exclamation-circle text-4xl text-yellow-400"></i>
@@ -460,7 +467,7 @@
         })
         switchPage("dashboard");
 
-        // 弹窗
+        // 弹窗控制
         function showLoad() {
             document.getElementById("loadingModal").classList.remove("hidden");
             setTimeout(() => {
@@ -468,8 +475,7 @@
                 document.getElementById("successModal").classList.remove("hidden");
             }, 1200)
         }
-        function closeAllModal() {
-            document.getElementById("loadingModal").classList.add("hidden");
+        function closeSuccessModal() {
             document.getElementById("successModal").classList.add("hidden");
         }
         function showTip(text) {
